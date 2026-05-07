@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Detail - Media Tech Support</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand"><span>MTS</span> Marketplace</a>
+    <div class="navbar-actions">
+      <a href="index.html" class="btn btn-secondary btn-sm">← Back to Marketplace</a>
+      <div id="userMenu" class="hidden" style="position:relative;">
+        <div id="userMenuBtn" class="navbar-user">
+          <div class="avatar" id="userAvatar">U</div>
+          <span id="userName" style="font-size:14px;font-weight:600;">User</span>
+        </div>
+      </div>
+      <a href="login.html" id="loginBtn" class="btn btn-primary btn-sm">Login / Sign Up</a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <div class="detail-container">
+      <!-- Product Not Found -->
+      <div class="empty-state hidden" id="notFound">
+        <div class="icon">🔍</div>
+        <h3>Product not found</h3>
+        <p>The product you're looking for doesn't exist or has been removed.</p>
+        <a href="index.html" class="btn btn-primary mt-4">Browse Marketplace</a>
+      </div>
+
+      <!-- Product Detail -->
+      <div id="productDetail" class="hidden">
+        <div class="detail-grid">
+          <!-- Images -->
+          <div class="detail-images">
+            <div class="detail-main-img" id="mainImage">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            <div class="detail-thumbs" id="thumbImages"></div>
+          </div>
+
+          <!-- Info -->
+          <div class="detail-info">
+            <span class="product-badge" id="productBadge" style="display:inline-block;margin-bottom:12px;"></span>
+            <h1 id="productName">Product Name</h1>
+            <div class="detail-price" id="productPrice">Rs. 0</div>
+
+            <div class="detail-meta" id="productMeta"></div>
+
+            <div class="detail-description" id="productDescription"></div>
+
+            <!-- Actions for devices -->
+            <div class="detail-actions" id="deviceActions">
+              <button class="btn btn-primary btn-lg" onclick="addToCart()" id="addToCartBtn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                Add to Cart
+              </button>
+              <button class="btn btn-success btn-lg" onclick="buyNow()">Buy Now</button>
+            </div>
+
+            <!-- Actions for tools (subscription) -->
+            <div class="detail-actions hidden" id="toolSubActions">
+              <button class="btn btn-primary btn-lg btn-block" onclick="availTool('subscription')">Get Subscription</button>
+            </div>
+
+            <!-- Actions for tools (rent) -->
+            <div class="detail-actions hidden" id="toolRentActions">
+              <button class="btn btn-primary btn-lg btn-block" onclick="availTool('rent')">Rent This Tool</button>
+            </div>
+
+            <!-- Seller Info -->
+            <div class="seller-info">
+              <h3>Seller Information</h3>
+              <p id="sellerInfo">Seller details will appear here</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tool Avail Modal (for subscription/rent - requires login) -->
+  <div class="modal-overlay" id="toolModal">
+    <div class="modal" style="max-width:500px;">
+      <div class="modal-header">
+        <h3 id="toolModalTitle">Avail Tool</h3>
+        <button class="modal-close" onclick="closeToolModal()">×</button>
+      </div>
+      <div class="modal-body" id="toolModalBody"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeToolModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitToolAvail()" id="toolSubmitBtn">Submit & Pay Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Buy Device Modal (requires login) -->
+  <div class="modal-overlay" id="buyModal">
+    <div class="modal" style="max-width:500px;">
+      <div class="modal-header">
+        <h3>Shipping Details</h3>
+        <button class="modal-close" onclick="closeBuyModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Full Address</label>
+          <textarea class="form-control" id="buyAddress" placeholder="Enter your full shipping address" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" class="form-control" id="buyPhone" placeholder="03XX-XXXXXXX">
+        </div>
+        <div class="form-group">
+          <label>City</label>
+          <input type="text" class="form-control" id="buyCity" placeholder="e.g., Lahore, Karachi">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeBuyModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="proceedToPayment()">Pay Now</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    const params = getUrlParams();
+    const product = Products.getById(params.id);
+
+    if (!product) {
+      document.getElementById('notFound').classList.remove('hidden');
+    } else {
+      document.getElementById('productDetail').classList.remove('hidden');
+      renderProduct(product);
+    }
+
+    function renderProduct(p) {
+      document.title = p.name + ' - Media Tech Support';
+
+      // Badge
+      const badge = document.getElementById('productBadge');
+      badge.textContent = getCategoryLabel(p.category);
+      badge.className = 'product-badge ' + getCategoryBadgeClass(p.category);
+
+      // Name & Price
+      document.getElementById('productName').textContent = p.name;
+      let priceText = formatPrice(p.price);
+      if (p.category === 'tool_rent') priceText += ' / ' + (p.rentDuration || 'day');
+      if (p.category === 'tool_subscription') priceText += ' / ' + (p.subscriptionDuration || 'subscription');
+      document.getElementById('productPrice').textContent = priceText;
+
+      // Meta
+      const metaHtml = [];
+      if (p.company) metaHtml.push(`<div class="detail-meta-item"><strong>Company:</strong> ${p.company}</div>`);
+      if (p.location) metaHtml.push(`<div class="detail-meta-item"><strong>Location:</strong> ${p.location}</div>`);
+      if (p.subscriptionDuration) metaHtml.push(`<div class="detail-meta-item"><strong>Duration:</strong> ${p.subscriptionDuration}</div>`);
+      if (p.rentDuration) metaHtml.push(`<div class="detail-meta-item"><strong>Rent Period:</strong> ${p.rentDuration}</div>`);
+      metaHtml.push(`<div class="detail-meta-item"><strong>Listed:</strong> ${timeAgo(p.createdAt)}</div>`);
+      document.getElementById('productMeta').innerHTML = metaHtml.join('');
+
+      // Description
+      document.getElementById('productDescription').textContent = p.description;
+
+      // Images
+      if (p.images && p.images.length > 0) {
+        document.getElementById('mainImage').innerHTML = `<img src="${p.images[0]}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius);">`;
+        document.getElementById('thumbImages').innerHTML = p.images.map((img, i) => 
+          `<img src="${img}" class="detail-thumb ${i === 0 ? 'active' : ''}" onclick="switchImage('${img}', this)" alt="Thumb ${i+1}">`
+        ).join('');
+      }
+
+      // Show correct action buttons
+      document.getElementById('deviceActions').classList.toggle('hidden', p.category.startsWith('tool_'));
+      document.getElementById('toolSubActions').classList.toggle('hidden', p.category !== 'tool_subscription');
+      document.getElementById('toolRentActions').classList.toggle('hidden', p.category !== 'tool_rent');
+
+      // Seller info (without phone/email)
+      document.getElementById('sellerInfo').innerHTML = `
+        <div style="font-weight:600;">${p.sellerName}</div>
+        <div style="font-size:12px;color:var(--gray-400);margin-top:4px;">Member since ${new Date(p.createdAt).toLocaleDateString()}</div>
+      `;
+    }
+
+    function switchImage(src, el) {
+      document.getElementById('mainImage').innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius);">`;
+      document.querySelectorAll('.detail-thumb').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function addToCart() {
+      if (!Auth.isLoggedIn()) {
+        showToast('Please login to add items to cart', 'error');
+        setTimeout(() => window.location.href = 'login.html', 1500);
+        return;
+      }
+      Cart.addItem(product);
+      showToast('Added to cart!');
+      document.getElementById('addToCartBtn').textContent = 'Added!';
+      document.getElementById('addToCartBtn').disabled = true;
+    }
+
+    function buyNow() {
+      if (!Auth.isLoggedIn()) {
+        showToast('Please login to buy', 'error');
+        setTimeout(() => window.location.href = 'login.html', 1500);
+        return;
+      }
+      document.getElementById('buyModal').classList.add('show');
+      // Pre-fill from user data
+      const user = Auth.currentUser();
+      document.getElementById('buyAddress').value = user.address || '';
+      document.getElementById('buyPhone').value = user.phone || '';
+    }
+
+    function closeBuyModal() {
+      document.getElementById('buyModal').classList.remove('show');
+    }
+
+    function proceedToPayment() {
+      const address = document.getElementById('buyAddress').value.trim();
+      const phone = document.getElementById('buyPhone').value.trim();
+      const city = document.getElementById('buyCity').value.trim();
+
+      if (!address || !phone || !city) {
+        showToast('Please fill all shipping details', 'error');
+        return;
+      }
+
+      // Create order and go to payment
+      const order = Orders.create({
+        productId: product.id,
+        productName: product.name,
+        productPrice: product.price,
+        type: 'device',
+        shipping: { address, phone, city }
+      });
+
+      window.location.href = `payment.html?orderId=${order.id}&productId=${product.id}`;
+    }
+
+    function availTool(type) {
+      if (!Auth.isLoggedIn()) {
+        showToast('Please login to avail this tool', 'error');
+        setTimeout(() => window.location.href = 'login.html', 1500);
+        return;
+      }
+
+      const modal = document.getElementById('toolModal');
+      const title = document.getElementById('toolModalTitle');
+      const body = document.getElementById('toolModalBody');
+
+      if (type === 'subscription') {
+        title.textContent = 'Subscribe to ' + product.name;
+        body.innerHTML = `
+          <p style="font-size:14px;color:var(--gray-500);margin-bottom:16px;">
+            Duration: <strong>${product.subscriptionDuration}</strong> · Price: <strong>${formatPrice(product.price)}</strong>
+          </p>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" class="form-control" id="toolEmail" placeholder="Your email for tool access" required>
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="tel" class="form-control" id="toolPhone" placeholder="03XX-XXXXXXX" required>
+          </div>
+          <div class="form-group">
+            <label>WhatsApp Number (Emergency)</label>
+            <input type="tel" class="form-control" id="toolWhatsApp" placeholder="WhatsApp number" required>
+          </div>
+        `;
+      } else {
+        title.textContent = 'Rent ' + product.name;
+        body.innerHTML = `
+          <p style="font-size:14px;color:var(--gray-500);margin-bottom:16px;">
+            Duration: <strong>${product.rentDuration}</strong> · Price: <strong>${formatPrice(product.price)}</strong>
+          </p>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" class="form-control" id="toolEmail" placeholder="Your email for tool login/access" required>
+            <div class="form-hint">You'll receive tool login credentials or access key on this email</div>
+          </div>
+        `;
+      }
+
+      // Store type for submit
+      modal.setAttribute('data-type', type);
+      modal.classList.add('show');
+    }
+
+    function closeToolModal() {
+      document.getElementById('toolModal').classList.remove('show');
+    }
+
+    function submitToolAvail() {
+      const type = document.getElementById('toolModal').getAttribute('data-type');
+      const email = document.getElementById('toolEmail').value.trim();
+
+      if (!email) {
+        showToast('Please enter your email', 'error');
+        return;
+      }
+
+      let orderData = {
+        productId: product.id,
+        productName: product.name,
+        productPrice: product.price,
+        type: type === 'subscription' ? 'tool_subscription' : 'tool_rent',
+        email
+      };
+
+      if (type === 'subscription') {
+        const phone = document.getElementById('toolPhone').value.trim();
+        const whatsapp = document.getElementById('toolWhatsApp').value.trim();
+        if (!phone || !whatsapp) {
+          showToast('Please fill all fields', 'error');
+          return;
+        }
+        orderData.phone = phone;
+        orderData.whatsapp = whatsapp;
+      }
+
+      const order = Orders.create(orderData);
+      closeToolModal();
+      window.location.href = `payment.html?orderId=${order.id}&productId=${product.id}`;
+    }
+  </script>
+</body>
+</html>
