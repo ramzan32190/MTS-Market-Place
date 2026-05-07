@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Method - Media Tech Support</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand"><span>MTS</span> Marketplace</a>
+    <div class="navbar-actions">
+      <a href="profile.html" class="btn btn-secondary btn-sm">← Back to Profile</a>
+    </div>
+  </nav>
+
+  <div class="payment-container" style="margin-top:32px;padding:0 24px;">
+    <div class="card" style="padding:32px;">
+      <h2 style="font-size:22px;font-weight:800;margin-bottom:4px;">Payment Method</h2>
+      <p style="font-size:14px;color:var(--gray-500);margin-bottom:24px;">Set up how you want to get paid when someone buys your product</p>
+
+      <div id="successAlert" class="alert alert-success hidden">Payment method saved successfully!</div>
+
+      <!-- Payment Method Selection -->
+      <div class="form-group">
+        <label>Select Payment Method</label>
+        <div id="paymentOptions">
+          <div class="wallet-option" onclick="selectPaymentMethod('bank', this)">
+            <input type="radio" name="paymentMethod" value="bank">
+            <div>
+              <div class="wallet-name">Bank Transfer</div>
+              <div style="font-size:12px;color:var(--gray-500);">Receive payments via bank account</div>
+            </div>
+          </div>
+          <div class="wallet-option" onclick="selectPaymentMethod('easypaisa', this)">
+            <input type="radio" name="paymentMethod" value="easypaisa">
+            <div>
+              <div class="wallet-name">Easypaisa</div>
+              <div style="font-size:12px;color:var(--gray-500);">Easypaisa mobile wallet</div>
+            </div>
+          </div>
+          <div class="wallet-option" onclick="selectPaymentMethod('jazzcash', this)">
+            <input type="radio" name="paymentMethod" value="jazzcash">
+            <div>
+              <div class="wallet-name">JazzCash</div>
+              <div style="font-size:12px;color:var(--gray-500);">JazzCash mobile wallet</div>
+            </div>
+          </div>
+          <div class="wallet-option" onclick="selectPaymentMethod('nayapay', this)">
+            <input type="radio" name="paymentMethod" value="nayapay">
+            <div>
+              <div class="wallet-name">NayaPay</div>
+              <div style="font-size:12px;color:var(--gray-500);">NayaPay digital wallet</div>
+            </div>
+          </div>
+          <div class="wallet-option" onclick="selectPaymentMethod('sadapay', this)">
+            <input type="radio" name="paymentMethod" value="sadapay">
+            <div>
+              <div class="wallet-name">SadaPay</div>
+              <div style="font-size:12px;color:var(--gray-500);">SadaPay digital wallet</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bank Details Form -->
+      <div id="bankForm" class="hidden" style="margin-top:16px;">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Bank Account Details</h3>
+        <div class="form-group">
+          <label>Bank Name</label>
+          <input type="text" class="form-control" id="bankName" placeholder="e.g., HBL, UBL, Meezan Bank">
+        </div>
+        <div class="form-group">
+          <label>IBAN / Bank Account Number</label>
+          <input type="text" class="form-control" id="bankIban" placeholder="Enter IBAN or account number">
+        </div>
+        <div class="form-group">
+          <label>Account Holder Name</label>
+          <input type="text" class="form-control" id="bankHolderName" placeholder="Enter account holder name">
+        </div>
+        <div class="form-group">
+          <label>Contact Number</label>
+          <input type="tel" class="form-control" id="bankContact" placeholder="03XX-XXXXXXX">
+        </div>
+      </div>
+
+      <!-- Wallet Details Form (Easypaisa, JazzCash, NayaPay, SadaPay) -->
+      <div id="walletForm" class="hidden" style="margin-top:16px;">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;" id="walletFormTitle">Wallet Details</h3>
+        <div class="form-group">
+          <label>Account Name</label>
+          <input type="text" class="form-control" id="walletAccountName" placeholder="Enter account holder name">
+        </div>
+        <div class="form-group">
+          <label>Wallet Type</label>
+          <select class="form-control" id="walletType">
+            <option value="">Select wallet type</option>
+            <option value="easypaisa">Easypaisa</option>
+            <option value="jazzcash">JazzCash</option>
+            <option value="nayapay">NayaPay</option>
+            <option value="sadapay">SadaPay</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Account Number</label>
+          <input type="text" class="form-control" id="walletAccountNumber" placeholder="Enter account/wallet number">
+        </div>
+        <div class="form-group">
+          <label>Contact Number</label>
+          <input type="tel" class="form-control" id="walletContact" placeholder="03XX-XXXXXXX">
+        </div>
+      </div>
+
+      <!-- Save Button -->
+      <div id="saveSection" class="hidden" style="margin-top:24px;">
+        <button class="btn btn-primary btn-lg btn-block" onclick="savePaymentMethod()">Save Payment Method</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    // Auth check - must be logged in seller
+    if (!Auth.isLoggedIn()) {
+      window.location.href = 'login.html';
+    }
+    if (!Auth.isSeller()) {
+      showToast('Only sellers can set up payment methods', 'error');
+      setTimeout(() => window.location.href = 'index.html', 2000);
+    }
+
+    let selectedMethod = null;
+
+    function selectPaymentMethod(method, el) {
+      selectedMethod = method;
+      
+      // Update UI
+      document.querySelectorAll('.wallet-option').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+      el.querySelector('input[type="radio"]').checked = true;
+
+      // Show appropriate form
+      const bankForm = document.getElementById('bankForm');
+      const walletForm = document.getElementById('walletForm');
+      const saveSection = document.getElementById('saveSection');
+
+      if (method === 'bank') {
+        bankForm.classList.remove('hidden');
+        walletForm.classList.add('hidden');
+      } else {
+        bankForm.classList.add('hidden');
+        walletForm.classList.remove('hidden');
+        document.getElementById('walletFormTitle').textContent = 
+          method.charAt(0).toUpperCase() + method.slice(1) + ' Wallet Details';
+        document.getElementById('walletType').value = method;
+      }
+      saveSection.classList.remove('hidden');
+    }
+
+    function savePaymentMethod() {
+      let paymentData = { method: selectedMethod };
+
+      if (selectedMethod === 'bank') {
+        const bankName = document.getElementById('bankName').value.trim();
+        const iban = document.getElementById('bankIban').value.trim();
+        const holderName = document.getElementById('bankHolderName').value.trim();
+        const contact = document.getElementById('bankContact').value.trim();
+
+        if (!bankName || !iban || !holderName || !contact) {
+          showToast('Please fill all bank details', 'error');
+          return;
+        }
+
+        paymentData = { ...paymentData, bankName, iban, holderName, contact };
+      } else {
+        const accountName = document.getElementById('walletAccountName').value.trim();
+        const walletType = document.getElementById('walletType').value;
+        const accountNumber = document.getElementById('walletAccountNumber').value.trim();
+        const contact = document.getElementById('walletContact').value.trim();
+
+        if (!accountName || !walletType || !accountNumber || !contact) {
+          showToast('Please fill all wallet details', 'error');
+          return;
+        }
+
+        paymentData = { ...paymentData, accountName, walletType, accountNumber, contact };
+      }
+
+      Auth.updatePaymentMethod(paymentData);
+      document.getElementById('successAlert').classList.remove('hidden');
+      showToast('Payment method saved!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Load existing payment method if set
+    const user = Auth.currentUser();
+    if (user.paymentMethod) {
+      const pm = user.paymentMethod;
+      const optionEl = document.querySelector(`.wallet-option input[value="${pm.method}"]`);
+      if (optionEl) {
+        selectPaymentMethod(pm.method, optionEl.closest('.wallet-option'));
+        if (pm.method === 'bank') {
+          document.getElementById('bankName').value = pm.bankName || '';
+          document.getElementById('bankIban').value = pm.iban || '';
+          document.getElementById('bankHolderName').value = pm.holderName || '';
+          document.getElementById('bankContact').value = pm.contact || '';
+        } else {
+          document.getElementById('walletAccountName').value = pm.accountName || '';
+          document.getElementById('walletType').value = pm.walletType || pm.method;
+          document.getElementById('walletAccountNumber').value = pm.accountNumber || '';
+          document.getElementById('walletContact').value = pm.contact || '';
+        }
+      }
+    }
+  </script>
+</body>
+</html>
