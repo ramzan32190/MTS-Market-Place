@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Media Tech Support - Marketplace</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+      <span>MTS</span> Marketplace
+    </a>
+
+    <div class="navbar-search">
+      <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Search products, tools, devices...">
+    </div>
+
+    <div class="navbar-actions">
+      <a href="login.html" id="loginBtn" class="btn btn-primary btn-sm">Login / Sign Up</a>
+      
+      <div id="userMenu" class="hidden" style="position:relative;">
+        <div id="userMenuBtn" class="navbar-user">
+          <div class="avatar" id="userAvatar">U</div>
+          <span id="userName" style="font-size:14px;font-weight:600;">User</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="user-dropdown" id="userDropdown">
+          <a href="profile.html">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            My Profile
+          </a>
+          <a href="upload.html" class="seller-only">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Upload Product
+          </a>
+          <a href="seller-payment.html" class="seller-only">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            Payment Method
+          </a>
+          <a href="#" onclick="Auth.logout(); return false;" style="color:var(--danger);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Logout
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Layout -->
+  <div class="main-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Categories</div>
+        <a class="sidebar-link active" data-category="all" onclick="filterCategory('all', this)">
+          <span class="icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </span>
+          All Products
+        </a>
+        <a class="sidebar-link" data-category="pc" onclick="filterCategory('pc', this)">
+          <span class="icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </span>
+          PC
+        </a>
+        <a class="sidebar-link" data-category="laptop" onclick="filterCategory('laptop', this)">
+          <span class="icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H4z"/><path d="M2 20h20"/></svg>
+          </span>
+          Laptop
+        </a>
+
+        <!-- Used Devices Dropdown -->
+        <a class="sidebar-link" onclick="toggleSubMenu('usedDevicesMenu', this)">
+          <span class="icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </span>
+          Used Devices
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:auto;"><polyline points="6 9 12 15 18 9"/></svg>
+        </a>
+        <div id="usedDevicesMenu" class="sidebar-sub hidden">
+          <a class="sidebar-link" data-category="used_laptop" onclick="filterCategory('used_laptop', this)">Used Laptops</a>
+          <a class="sidebar-link" data-category="used_mobile" onclick="filterCategory('used_mobile', this)">Mobiles</a>
+          <a class="sidebar-link" data-category="used_computer" onclick="filterCategory('used_computer', this)">Computers</a>
+        </div>
+
+        <!-- Android Tools Dropdown -->
+        <a class="sidebar-link" onclick="toggleSubMenu('toolsMenu', this)">
+          <span class="icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          </span>
+          Android Tools
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:auto;"><polyline points="6 9 12 15 18 9"/></svg>
+        </a>
+        <div id="toolsMenu" class="sidebar-sub hidden">
+          <a class="sidebar-link" data-category="tool_rent" onclick="filterCategory('tool_rent', this)">Rent</a>
+          <a class="sidebar-link" data-category="tool_subscription" onclick="filterCategory('tool_subscription', this)">Subscription</a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="page-header">
+        <h1 class="page-title" id="pageTitle">All Products</h1>
+        <p class="page-subtitle" id="pageSubtitle">Browse our marketplace for PCs, laptops, used devices, and android tools</p>
+      </div>
+
+      <!-- Category Filter Chips (mobile) -->
+      <div class="filter-chips" id="filterChips">
+        <span class="chip active" onclick="filterCategory('all', this)">All</span>
+        <span class="chip" onclick="filterCategory('pc', this)">PC</span>
+        <span class="chip" onclick="filterCategory('laptop', this)">Laptop</span>
+        <span class="chip" onclick="filterCategory('used_laptop', this)">Used Laptops</span>
+        <span class="chip" onclick="filterCategory('used_mobile', this)">Mobiles</span>
+        <span class="chip" onclick="filterCategory('used_computer', this)">Computers</span>
+        <span class="chip" onclick="filterCategory('tool_rent', this)">Rent</span>
+        <span class="chip" onclick="filterCategory('tool_subscription', this)">Subscription</span>
+      </div>
+
+      <!-- Product Grid -->
+      <div class="product-grid" id="productGrid">
+        <!-- Products will be rendered here -->
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state hidden" id="emptyState">
+        <div class="icon">📦</div>
+        <h3>No products found</h3>
+        <p>Try a different search or category</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    let currentCategory = 'all';
+
+    // Render products
+    function renderProducts(products) {
+      const grid = document.getElementById('productGrid');
+      const empty = document.getElementById('emptyState');
+
+      if (!products.length) {
+        grid.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      empty.classList.add('hidden');
+      grid.innerHTML = products.map(p => {
+        const imgSrc = (p.images && p.images.length > 0) ? p.images[0] : '';
+        const badgeClass = getCategoryBadgeClass(p.category);
+        const label = getCategoryLabel(p.category);
+        let priceDisplay = formatPrice(p.price);
+        if (p.category === 'tool_rent') priceDisplay = formatPrice(p.price) + '/day';
+        if (p.category === 'tool_subscription') priceDisplay = formatPrice(p.price);
+
+        return `
+          <div class="card product-card" onclick="window.location.href='product.html?id=${p.id}'">
+            <div class="card-img" style="position:relative;${imgSrc ? '' : 'display:flex;align-items:center;justify-content:center;color:var(--gray-300);font-size:48px;'}">
+              ${imgSrc ? `<img src="${imgSrc}" alt="${p.name}" style="width:100%;height:200px;object-fit:cover;">` : `
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              `}
+              <span class="product-badge ${badgeClass}" style="position:absolute;top:10px;left:10px;">${label}</span>
+            </div>
+            <div class="card-body">
+              <div class="card-title">${p.name}</div>
+              <div class="card-price">${priceDisplay}</div>
+              <div class="card-meta">
+                ${p.location ? `📍 ${p.location}` : ''}
+                ${p.subscriptionDuration ? `⏱ ${p.subscriptionDuration}` : ''}
+                ${p.rentDuration ? `⏱ ${p.rentDuration}` : ''}
+                · ${timeAgo(p.createdAt)}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Filter by category
+    function filterCategory(category, el) {
+      currentCategory = category;
+      
+      // Update sidebar active
+      document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      if (el) el.classList.add('active');
+
+      // Update title
+      const title = document.getElementById('pageTitle');
+      if (category === 'all') {
+        title.textContent = 'All Products';
+      } else {
+        title.textContent = getCategoryLabel(category);
+      }
+
+      const products = Products.getByCategory(category);
+      renderProducts(products);
+    }
+
+    // Toggle sidebar sub-menu
+    function toggleSubMenu(id, el) {
+      const menu = document.getElementById(id);
+      menu.classList.toggle('hidden');
+      const arrow = el.querySelector('svg:last-child');
+      if (arrow) {
+        arrow.style.transform = menu.classList.contains('hidden') ? '' : 'rotate(180deg)';
+      }
+    }
+
+    // Search
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+      const q = e.target.value.trim();
+      if (q.length === 0) {
+        filterCategory(currentCategory, document.querySelector(`.sidebar-link[data-category="${currentCategory}"]`));
+      } else {
+        const results = Products.search(q);
+        document.getElementById('pageTitle').textContent = `Search: "${q}"`;
+        renderProducts(results);
+      }
+    });
+
+    // Initial render
+    document.addEventListener('DOMContentLoaded', () => {
+      filterCategory('all', document.querySelector('.sidebar-link[data-category="all"]'));
+    });
+  </script>
+</body>
+</html>
