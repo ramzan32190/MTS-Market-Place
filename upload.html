@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Product - Media Tech Support</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand"><span>MTS</span> Marketplace</a>
+    <div class="navbar-actions">
+      <a href="index.html" class="btn btn-secondary btn-sm">← Back to Marketplace</a>
+    </div>
+  </nav>
+
+  <div class="upload-container" style="margin-top:32px;padding:0 24px;margin-bottom:60px;">
+    <h2 style="font-size:24px;font-weight:800;margin-bottom:4px;">Upload Product</h2>
+    <p style="font-size:14px;color:var(--gray-500);margin-bottom:24px;">List your product or tool on the marketplace</p>
+
+    <!-- Step 1: Select Category -->
+    <div class="card" style="padding:24px;margin-bottom:20px;">
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">1. Select Category</h3>
+      <div class="form-group">
+        <select class="form-control" id="categorySelect" onchange="onCategoryChange()">
+          <option value="">Choose a category...</option>
+          <optgroup label="Devices">
+            <option value="pc">PC</option>
+            <option value="laptop">Laptop</option>
+          </optgroup>
+          <optgroup label="Used Devices">
+            <option value="used_laptop">Used Laptop</option>
+            <option value="used_mobile">Used Mobile</option>
+            <option value="used_computer">Used Computer</option>
+          </optgroup>
+          <optgroup label="Android Tools">
+            <option value="tool_subscription">Tool - Subscription</option>
+            <option value="tool_rent">Tool - Rent</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+
+    <!-- Device Form (PC, Laptop, Used Devices) -->
+    <div id="deviceForm" class="hidden">
+      <div class="card" style="padding:24px;margin-bottom:20px;">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">2. Product Images (6 images required)</h3>
+        <div class="image-upload-grid" id="deviceImages">
+          <!-- 6 image slots -->
+        </div>
+        <input type="file" id="deviceImageInput" accept="image/*" multiple style="display:none;" onchange="handleDeviceImages(event)">
+      </div>
+
+      <div class="card" style="padding:24px;margin-bottom:20px;">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">3. Product Details</h3>
+        <div class="form-group">
+          <label>Product Name</label>
+          <input type="text" class="form-control" id="deviceName" placeholder="e.g., Gaming PC RTX 4060">
+        </div>
+        <div class="form-group">
+          <label>Company Name</label>
+          <input type="text" class="form-control" id="deviceCompany" placeholder="e.g., Dell, HP, Custom Build">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea class="form-control" id="deviceDescription" placeholder="Describe your product in detail..." rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Price (PKR)</label>
+          <input type="number" class="form-control" id="devicePrice" placeholder="Enter price in PKR">
+        </div>
+        <div class="form-group">
+          <label>Location</label>
+          <input type="text" class="form-control" id="deviceLocation" placeholder="e.g., Lahore, Karachi">
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-lg btn-block" onclick="submitDevice()">Upload Product</button>
+    </div>
+
+    <!-- Tool Subscription Form -->
+    <div id="subscriptionForm" class="hidden">
+      <div class="card" style="padding:24px;margin-bottom:20px;">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">2. Tool Screenshots (4 original screenshots required)</h3>
+        <div class="image-upload-grid" id="subImages" style="grid-template-columns:repeat(2,1fr);">
+          <!-- 4 image slots -->
+        </div>
+        <input type="file" id="subImageInput" accept="image/*" multiple style="display:none;" onchange="handleSubImages(event)">
+      </div>
+
+      <div class="card" style="padding:24px;margin-bottom:20px;">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">3. Tool Details</h3>
+        <div class="form-group">
+          <label>Tool Name</label>
+          <input type="text" class="form-control" id="subName" placeholder="e.g., FRP Bypass Tool">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea class="form-control" id="subDescription" placeholder="Describe the tool capabilities..." rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Subscription Duration</label>
+          <input type="text" class="form-control" id="subDuration" placeholder="e.g., 3 months, 6 months, 1 year">
+          <div class="form-hint">Enter the subscription period (e.g., 2 months, 6 months)</div>
+        </div>
+        <div class="form-group">
+          <label>Price (PKR)</label>
+          <input type="number" class="form-control" id="subPrice" placeholder="Enter subscription price">
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-lg btn-block" onclick="submitSubscription()">Upload Tool (Subscription)</button>
+    </div>
+
+    <!-- Tool Rent Form -->
+    <div id="rentForm" class="hidden">
+      <div class="card" style="padding:24px;margin-bottom:20px;">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">2. Tool Images (5 images required)</h3>
+        <div class="image-upload-grid" id="rentImages">
+          <!-- 5 image slots -->
+        </div>
+        <input type="file" id="rentImageInput" accept="image/*" multiple style="display:none;" onchange="handleRentImages(event)">
+      </div>
+
+      <div class="card" style="padding:24px;margin-bottom:20px;">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">3. Tool Details</h3>
+        <div class="form-group">
+          <label>Tool Name</label>
+          <input type="text" class="form-control" id="rentName" placeholder="e.g., JTAG Box, Octopus Box">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea class="form-control" id="rentDescription" placeholder="Describe the tool..." rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Rent Duration</label>
+          <input type="text" class="form-control" id="rentDuration" placeholder="e.g., Per Day, Per Week">
+        </div>
+        <div class="form-group">
+          <label>Price (PKR) - per day/hour</label>
+          <input type="number" class="form-control" id="rentPrice" placeholder="Enter rent price per day or hour">
+          <div class="form-hint">Specify the price for rental period (days or hours)</div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-lg btn-block" onclick="submitRent()">Upload Tool (Rent)</button>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    // Auth check
+    if (!Auth.isLoggedIn() || !Auth.isSeller()) {
+      showToast('Only logged-in sellers can upload products', 'error');
+      setTimeout(() => window.location.href = 'login.html', 2000);
+    }
+
+    let deviceImageFiles = [];
+    let subImageFiles = [];
+    let rentImageFiles = [];
+
+    function onCategoryChange() {
+      const cat = document.getElementById('categorySelect').value;
+      document.getElementById('deviceForm').classList.add('hidden');
+      document.getElementById('subscriptionForm').classList.add('hidden');
+      document.getElementById('rentForm').classList.add('hidden');
+
+      if (['pc', 'laptop', 'used_laptop', 'used_mobile', 'used_computer'].includes(cat)) {
+        document.getElementById('deviceForm').classList.remove('hidden');
+        renderImageSlots('deviceImages', 6, 'deviceImageInput');
+        deviceImageFiles = [];
+      } else if (cat === 'tool_subscription') {
+        document.getElementById('subscriptionForm').classList.remove('hidden');
+        renderImageSlots('subImages', 4, 'subImageInput');
+        subImageFiles = [];
+      } else if (cat === 'tool_rent') {
+        document.getElementById('rentForm').classList.remove('hidden');
+        renderImageSlots('rentImages', 5, 'rentImageInput');
+        rentImageFiles = [];
+      }
+    }
+
+    function renderImageSlots(containerId, count, inputId) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const box = document.createElement('div');
+        box.className = 'image-upload-box';
+        box.setAttribute('data-index', i);
+        box.onclick = () => document.getElementById(inputId).click();
+        box.innerHTML = `<span class="plus">+</span><span class="text">Image ${i + 1}</span>`;
+        container.appendChild(box);
+      }
+    }
+
+    async function handleDeviceImages(event) {
+      await processImageFiles(event.target.files, 'deviceImages', 6, deviceImageFiles);
+      deviceImageFiles = Array.from(event.target.files).slice(0, 6);
+    }
+
+    async function handleSubImages(event) {
+      await processImageFiles(event.target.files, 'subImages', 4, subImageFiles);
+      subImageFiles = Array.from(event.target.files).slice(0, 4);
+    }
+
+    async function handleRentImages(event) {
+      await processImageFiles(event.target.files, 'rentImages', 5, rentImageFiles);
+      rentImageFiles = Array.from(event.target.files).slice(0, 5);
+    }
+
+    async function processImageFiles(files, containerId, maxCount, fileArr) {
+      const container = document.getElementById(containerId);
+      const boxes = container.querySelectorAll('.image-upload-box');
+      const filesToProcess = Array.from(files).slice(0, maxCount);
+
+      for (let i = 0; i < filesToProcess.length && i < boxes.length; i++) {
+        const base64 = await fileToBase64(filesToProcess[i]);
+        boxes[i].innerHTML = `
+          <img src="${base64}" alt="Image ${i + 1}">
+          <button class="remove-img" onclick="event.stopPropagation(); removeImage(${i}, '${containerId}', '${maxCount}')">×</button>
+        `;
+      }
+    }
+
+    function removeImage(index, containerId, maxCount) {
+      const container = document.getElementById(containerId);
+      const boxes = container.querySelectorAll('.image-upload-box');
+      if (boxes[index]) {
+        boxes[index].innerHTML = `<span class="plus">+</span><span class="text">Image ${index + 1}</span>`;
+      }
+    }
+
+    async function getImageBase64Array(files, max) {
+      const result = [];
+      const filesToProcess = Array.from(files).slice(0, max);
+      for (const file of filesToProcess) {
+        result.push(await fileToBase64(file));
+      }
+      return result;
+    }
+
+    async function submitDevice() {
+      const category = document.getElementById('categorySelect').value;
+      const name = document.getElementById('deviceName').value.trim();
+      const company = document.getElementById('deviceCompany').value.trim();
+      const description = document.getElementById('deviceDescription').value.trim();
+      const price = document.getElementById('devicePrice').value;
+      const location = document.getElementById('deviceLocation').value.trim();
+
+      if (!name || !company || !description || !price || !location) {
+        showToast('Please fill all fields', 'error');
+        return;
+      }
+
+      const images = await getImageBase64Array(deviceImageFiles, 6);
+
+      Products.add({
+        category, name, company, description,
+        price: Number(price), location, images
+      });
+
+      showToast('Product uploaded successfully!');
+      setTimeout(() => window.location.href = 'index.html', 1500);
+    }
+
+    async function submitSubscription() {
+      const name = document.getElementById('subName').value.trim();
+      const description = document.getElementById('subDescription').value.trim();
+      const subscriptionDuration = document.getElementById('subDuration').value.trim();
+      const price = document.getElementById('subPrice').value;
+
+      if (!name || !description || !subscriptionDuration || !price) {
+        showToast('Please fill all fields', 'error');
+        return;
+      }
+
+      const images = await getImageBase64Array(subImageFiles, 4);
+
+      Products.add({
+        category: 'tool_subscription', name, description,
+        subscriptionDuration, price: Number(price), images
+      });
+
+      showToast('Tool (Subscription) uploaded successfully!');
+      setTimeout(() => window.location.href = 'index.html', 1500);
+    }
+
+    async function submitRent() {
+      const name = document.getElementById('rentName').value.trim();
+      const description = document.getElementById('rentDescription').value.trim();
+      const rentDuration = document.getElementById('rentDuration').value.trim();
+      const price = document.getElementById('rentPrice').value;
+
+      if (!name || !description || !rentDuration || !price) {
+        showToast('Please fill all fields', 'error');
+        return;
+      }
+
+      const images = await getImageBase64Array(rentImageFiles, 5);
+
+      Products.add({
+        category: 'tool_rent', name, description,
+        rentDuration, price: Number(price), images
+      });
+
+      showToast('Tool (Rent) uploaded successfully!');
+      setTimeout(() => window.location.href = 'index.html', 1500);
+    }
+  </script>
+</body>
+</html>
