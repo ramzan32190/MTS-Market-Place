@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Proof - Media Tech Support</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand"><span>MTS</span> Marketplace</a>
+  </nav>
+
+  <div class="main-content">
+    <!-- Payment Proof Form -->
+    <div class="payment-container" id="proofForm">
+      <div class="card" style="padding:32px;">
+        <h2 style="font-size:22px;font-weight:800;margin-bottom:4px;">Payment Proof</h2>
+        <p style="font-size:14px;color:var(--gray-500);margin-bottom:24px;">Submit your payment proof to confirm the transaction</p>
+
+        <div class="form-group">
+          <label>Amount Sent (PKR)</label>
+          <input type="number" class="form-control" id="proofAmount" placeholder="Enter the exact amount you sent">
+        </div>
+
+        <div class="form-group">
+          <label>Payment Method Used</label>
+          <select class="form-control" id="proofMethod">
+            <option value="">Select payment method</option>
+            <option value="nayapay">NayaPay</option>
+            <option value="easypaisa">Easypaisa</option>
+            <option value="jazzcash">JazzCash</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Transaction ID / Reference Number</label>
+          <input type="text" class="form-control" id="proofTrxId" placeholder="Enter transaction ID or reference number">
+        </div>
+
+        <div class="form-group">
+          <label>Upload Screenshot</label>
+          <div class="image-upload-box" style="aspect-ratio:auto;min-height:150px;width:100%;" onclick="document.getElementById('screenshotInput').click()" id="screenshotBox">
+            <span class="plus">+</span>
+            <span class="text">Click to upload payment screenshot</span>
+          </div>
+          <input type="file" id="screenshotInput" accept="image/*" style="display:none;" onchange="handleScreenshot(event)">
+        </div>
+
+        <div class="form-group">
+          <label>Your Email</label>
+          <input type="email" class="form-control" id="proofEmail" placeholder="Enter your email address">
+          <div class="form-hint">We'll send you a confirmation on this email</div>
+        </div>
+
+        <button class="btn btn-primary btn-lg btn-block mt-4" onclick="submitProof()">Submit Payment Proof</button>
+      </div>
+    </div>
+
+    <!-- Success Page -->
+    <div class="payment-container hidden" id="successPage">
+      <div class="success-page">
+        <div class="success-icon">&#10003;</div>
+        <h2>Payment Proof Submitted!</h2>
+        <p>Thank you! Your payment proof has been submitted successfully.</p>
+        <p>Our team will verify your payment and process your order shortly.</p>
+        <p class="countdown" id="countdown">Redirecting to marketplace in <strong>5</strong> seconds...</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    // Auth check
+    if (!Auth.isLoggedIn()) {
+      window.location.href = 'login.html';
+    }
+
+    const params = getUrlParams();
+    let screenshotBase64 = null;
+
+    // Pre-fill payment method from URL
+    if (params.wallet) {
+      document.getElementById('proofMethod').value = params.wallet;
+    }
+
+    // Pre-fill email
+    const user = Auth.currentUser();
+    if (user) {
+      document.getElementById('proofEmail').value = user.email || '';
+    }
+
+    async function handleScreenshot(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      screenshotBase64 = await fileToBase64(file);
+      document.getElementById('screenshotBox').innerHTML = `
+        <img src="${screenshotBase64}" alt="Screenshot" style="max-height:200px;object-fit:contain;">
+      `;
+    }
+
+    function submitProof() {
+      const amount = document.getElementById('proofAmount').value.trim();
+      const method = document.getElementById('proofMethod').value;
+      const trxId = document.getElementById('proofTrxId').value.trim();
+      const email = document.getElementById('proofEmail').value.trim();
+
+      if (!amount || !method || !trxId || !email) {
+        showToast('Please fill all required fields', 'error');
+        return;
+      }
+
+      if (!screenshotBase64) {
+        showToast('Please upload a payment screenshot', 'error');
+        return;
+      }
+
+      // Save proof
+      const proofData = {
+        amount: Number(amount),
+        method,
+        transactionId: trxId,
+        screenshot: screenshotBase64,
+        email,
+        submittedAt: new Date().toISOString()
+      };
+
+      if (params.orderId) {
+        Orders.submitProof(params.orderId, proofData);
+      }
+
+      // Show success page
+      document.getElementById('proofForm').classList.add('hidden');
+      document.getElementById('successPage').classList.remove('hidden');
+
+      // Countdown and redirect
+      let seconds = 5;
+      const countdownEl = document.getElementById('countdown');
+      const interval = setInterval(() => {
+        seconds--;
+        countdownEl.innerHTML = `Redirecting to marketplace in <strong>${seconds}</strong> seconds...`;
+        if (seconds <= 0) {
+          clearInterval(interval);
+          window.location.href = 'index.html';
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
