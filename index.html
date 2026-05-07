@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Media Tech Support</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .admin-layout { display: flex; min-height: 100vh; }
+    .admin-sidebar {
+      width: 240px; background: var(--gray-900); padding: 20px 0; flex-shrink: 0;
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    }
+    .admin-sidebar .brand {
+      padding: 0 20px 20px; border-bottom: 1px solid var(--gray-700);
+      margin-bottom: 16px;
+    }
+    .admin-sidebar .brand h2 { color: var(--white); font-size: 18px; font-weight: 800; }
+    .admin-sidebar .brand p { color: var(--gray-400); font-size: 12px; }
+    .admin-nav a {
+      display: flex; align-items: center; gap: 10px; padding: 10px 20px;
+      color: var(--gray-400); font-size: 14px; font-weight: 500;
+      transition: var(--transition); cursor: pointer;
+    }
+    .admin-nav a:hover { color: var(--white); background: rgba(255,255,255,0.05); }
+    .admin-nav a.active { color: var(--primary); background: rgba(14,165,233,0.1); border-right: 3px solid var(--primary); }
+    .admin-main { flex: 1; background: var(--gray-50); }
+    .admin-header {
+      background: var(--white); padding: 16px 24px; border-bottom: 1px solid var(--gray-200);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .admin-header h1 { font-size: 20px; font-weight: 700; }
+    .admin-content { padding: 24px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--white); border-radius: var(--radius); padding: 20px;
+      border: 1px solid var(--gray-200);
+    }
+    .stat-card .stat-label { font-size: 13px; color: var(--gray-500); font-weight: 600; }
+    .stat-card .stat-value { font-size: 28px; font-weight: 800; color: var(--gray-900); margin-top: 4px; }
+    .stat-card .stat-change { font-size: 12px; margin-top: 4px; }
+    .data-table { width: 100%; border-collapse: collapse; background: var(--white); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--gray-200); }
+    .data-table th { text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--gray-500); background: var(--gray-50); border-bottom: 1px solid var(--gray-200); }
+    .data-table td { padding: 12px 16px; font-size: 14px; border-bottom: 1px solid var(--gray-100); }
+    .data-table tr:hover td { background: var(--gray-50); }
+    .status-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .status-active { background: #d1fae5; color: #065f46; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-proof { background: #dbeafe; color: #1e40af; }
+
+    .admin-section { display: none; }
+    .admin-section.active { display: block; }
+
+    /* Admin Login */
+    .admin-login-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, var(--gray-900) 0%, var(--gray-800) 100%);
+      display: flex; align-items: center; justify-content: center; z-index: 1000;
+    }
+    .admin-login-card {
+      background: var(--white); border-radius: var(--radius-lg); padding: 40px;
+      max-width: 400px; width: 90%; box-shadow: var(--shadow-lg);
+    }
+  </style>
+</head>
+<body>
+  <!-- Admin Login Overlay -->
+  <div class="admin-login-overlay" id="adminLogin">
+    <div class="admin-login-card">
+      <div class="text-center mb-6">
+        <h2 style="font-size:24px;font-weight:800;margin-bottom:4px;">Admin Panel</h2>
+        <p style="color:var(--gray-500);font-size:14px;">Media Tech Support - Control Center</p>
+      </div>
+      <div id="adminLoginError" class="alert alert-danger hidden"></div>
+      <form onsubmit="adminLoginHandler(event)">
+        <div class="form-group">
+          <label>Admin Username</label>
+          <input type="text" class="form-control" id="adminUser" placeholder="Enter admin username" required>
+        </div>
+        <div class="form-group">
+          <label>Admin Password</label>
+          <input type="password" class="form-control" id="adminPass" placeholder="Enter admin password" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Login to Admin Panel</button>
+      </form>
+      <p style="text-align:center;margin-top:16px;font-size:12px;color:var(--gray-400);">
+        Default: admin / admin123
+      </p>
+    </div>
+  </div>
+
+  <!-- Admin Layout -->
+  <div class="admin-layout hidden" id="adminPanel">
+    <!-- Sidebar -->
+    <div class="admin-sidebar">
+      <div class="brand">
+        <h2>MTS Admin</h2>
+        <p>Control Center</p>
+      </div>
+      <nav class="admin-nav">
+        <a class="active" onclick="showSection('dashboard', this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a onclick="showSection('users', this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Users
+        </a>
+        <a onclick="showSection('products', this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          Products
+        </a>
+        <a onclick="showSection('orders', this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          Orders
+        </a>
+        <a onclick="showSection('payments', this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          Payments
+        </a>
+        <a onclick="showSection('settings', this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </a>
+        <a href="../index.html" style="border-top:1px solid var(--gray-700);margin-top:16px;padding-top:16px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          Go to Marketplace
+        </a>
+        <a onclick="adminLogout()" style="color:var(--danger);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Logout
+        </a>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="admin-main">
+      <div class="admin-header">
+        <h1 id="sectionTitle">Dashboard</h1>
+        <span style="font-size:13px;color:var(--gray-500);" id="adminGreeting">Welcome, Admin</span>
+      </div>
+
+      <div class="admin-content">
+        <!-- Dashboard Section -->
+        <div class="admin-section active" id="sec-dashboard">
+          <div class="stat-grid" id="statsGrid"></div>
+          <div class="card" style="padding:24px;">
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Recent Orders</h3>
+            <div id="recentOrders"></div>
+          </div>
+        </div>
+
+        <!-- Users Section -->
+        <div class="admin-section" id="sec-users">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="font-size:16px;font-weight:700;">All Users</h3>
+            <input type="text" class="form-control" placeholder="Search users..." style="max-width:250px;" oninput="searchUsers(this.value)">
+          </div>
+          <div id="usersTable"></div>
+        </div>
+
+        <!-- Products Section -->
+        <div class="admin-section" id="sec-products">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="font-size:16px;font-weight:700;">All Products</h3>
+            <input type="text" class="form-control" placeholder="Search products..." style="max-width:250px;" oninput="searchProducts(this.value)">
+          </div>
+          <div id="productsTable"></div>
+        </div>
+
+        <!-- Orders Section -->
+        <div class="admin-section" id="sec-orders">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="font-size:16px;font-weight:700;">All Orders</h3>
+          </div>
+          <div id="ordersTable"></div>
+        </div>
+
+        <!-- Payments Section -->
+        <div class="admin-section" id="sec-payments">
+          <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Payment Proofs</h3>
+          <div id="paymentsTable"></div>
+        </div>
+
+        <!-- Settings Section -->
+        <div class="admin-section" id="sec-settings">
+          <div class="card" style="padding:24px;max-width:500px;">
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Admin Settings</h3>
+            <div class="form-group">
+              <label>Admin Username</label>
+              <input type="text" class="form-control" id="settingsUsername" value="admin">
+            </div>
+            <div class="form-group">
+              <label>New Password</label>
+              <input type="password" class="form-control" id="settingsPassword" placeholder="Leave blank to keep current">
+            </div>
+            <div class="form-group">
+              <label>Google Apps Script URL</label>
+              <input type="text" class="form-control" id="settingsApiUrl" placeholder="https://script.google.com/macros/s/...">
+              <div class="form-hint">Enter your deployed Google Apps Script Web App URL</div>
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+          </div>
+
+          <div class="card" style="padding:24px;max-width:500px;margin-top:20px;">
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Data Management</h3>
+            <button class="btn btn-secondary" onclick="exportData()" style="margin-right:8px;">Export All Data (JSON)</button>
+            <button class="btn btn-danger" onclick="clearAllData()">Clear All Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/app.js"></script>
+  <script>
+    // Admin credentials (in production, use Apps Script backend)
+    const ADMIN_CREDS = DB.get('adminCreds') || { username: 'admin', password: 'admin123' };
+
+    // Check admin auth
+    if (DB.get('adminLoggedIn')) {
+      document.getElementById('adminLogin').classList.add('hidden');
+      document.getElementById('adminPanel').classList.remove('hidden');
+      loadDashboard();
+    }
+
+    function adminLoginHandler(e) {
+      e.preventDefault();
+      const user = document.getElementById('adminUser').value.trim();
+      const pass = document.getElementById('adminPass').value;
+
+      if (user === ADMIN_CREDS.username && pass === ADMIN_CREDS.password) {
+        DB.set('adminLoggedIn', true);
+        document.getElementById('adminLogin').classList.add('hidden');
+        document.getElementById('adminPanel').classList.remove('hidden');
+        loadDashboard();
+      } else {
+        const err = document.getElementById('adminLoginError');
+        err.textContent = 'Invalid admin credentials';
+        err.classList.remove('hidden');
+      }
+    }
+
+    function adminLogout() {
+      DB.set('adminLoggedIn', false);
+      window.location.reload();
+    }
+
+    function showSection(section, el) {
+      document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.admin-nav a').forEach(a => a.classList.remove('active'));
+      document.getElementById('sec-' + section).classList.add('active');
+      if (el) el.classList.add('active');
+      document.getElementById('sectionTitle').textContent = el ? el.textContent.trim() : section;
+
+      // Load data
+      if (section === 'dashboard') loadDashboard();
+      if (section === 'users') loadUsers();
+      if (section === 'products') loadProducts();
+      if (section === 'orders') loadOrders();
+      if (section === 'payments') loadPayments();
+    }
+
+    // Dashboard
+    function loadDashboard() {
+      const users = DB.getAll('users');
+      const products = DB.getAll('products');
+      const orders = DB.getAll('orders');
+      const sellers = users.filter(u => u.role === 'seller');
+      const buyers = users.filter(u => u.role === 'buyer');
+
+      document.getElementById('statsGrid').innerHTML = `
+        <div class="stat-card">
+          <div class="stat-label">Total Users</div>
+          <div class="stat-value">${users.length}</div>
+          <div class="stat-change" style="color:var(--success);">Sellers: ${sellers.length} · Buyers: ${buyers.length}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Products</div>
+          <div class="stat-value">${products.length}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Orders</div>
+          <div class="stat-value">${orders.length}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pending Payments</div>
+          <div class="stat-value">${orders.filter(o => o.status === 'pending').length}</div>
+        </div>
+      `;
+
+      // Recent orders
+      const recent = orders.slice(-5).reverse();
+      if (recent.length === 0) {
+        document.getElementById('recentOrders').innerHTML = '<p style="color:var(--gray-400);font-size:14px;">No orders yet</p>';
+      } else {
+        document.getElementById('recentOrders').innerHTML = `
+          <table class="data-table">
+            <thead><tr><th>Order ID</th><th>Product</th><th>Buyer</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>${recent.map(o => `
+              <tr>
+                <td style="font-size:12px;">${o.id}</td>
+                <td>${o.productName || '-'}</td>
+                <td>${o.buyerName || '-'}</td>
+                <td><span class="status-badge ${o.status === 'proof_submitted' ? 'status-proof' : 'status-pending'}">${o.status}</span></td>
+                <td style="font-size:12px;">${timeAgo(o.createdAt)}</td>
+              </tr>
+            `).join('')}</tbody>
+          </table>
+        `;
+      }
+    }
+
+    // Users
+    function loadUsers(filter = '') {
+      let users = DB.getAll('users');
+      if (filter) {
+        const q = filter.toLowerCase();
+        users = users.filter(u => u.fullName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.username.toLowerCase().includes(q));
+      }
+      if (users.length === 0) {
+        document.getElementById('usersTable').innerHTML = '<p style="color:var(--gray-400);">No users found</p>';
+        return;
+      }
+      document.getElementById('usersTable').innerHTML = `
+        <table class="data-table">
+          <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Phone</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody>${users.map(u => `
+            <tr>
+              <td>${u.fullName}</td>
+              <td>${u.username}</td>
+              <td>${u.email}</td>
+              <td>${u.phone}</td>
+              <td><span class="status-badge ${u.role === 'seller' ? 'status-active' : 'status-proof'}">${u.role}</span></td>
+              <td style="font-size:12px;">${new Date(u.createdAt).toLocaleDateString()}</td>
+              <td><button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">Delete</button></td>
+            </tr>
+          `).join('')}</tbody>
+        </table>
+      `;
+    }
+
+    function searchUsers(q) { loadUsers(q); }
+
+    function deleteUser(id) {
+      if (!confirm('Delete this user?')) return;
+      const users = DB.getAll('users').filter(u => u.id !== id);
+      DB.set('users', users);
+      loadUsers();
+    }
+
+    // Products
+    function loadProducts(filter = '') {
+      let products = DB.getAll('products');
+      if (filter) {
+        const q = filter.toLowerCase();
+        products = products.filter(p => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
+      }
+      if (products.length === 0) {
+        document.getElementById('productsTable').innerHTML = '<p style="color:var(--gray-400);">No products found</p>';
+        return;
+      }
+      document.getElementById('productsTable').innerHTML = `
+        <table class="data-table">
+          <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Seller</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>${products.map(p => `
+            <tr>
+              <td>${p.name}</td>
+              <td><span class="status-badge">${getCategoryLabel(p.category)}</span></td>
+              <td>${formatPrice(p.price)}</td>
+              <td>${p.sellerName}</td>
+              <td><span class="status-badge status-active">${p.status}</span></td>
+              <td><button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Delete</button></td>
+            </tr>
+          `).join('')}</tbody>
+        </table>
+      `;
+    }
+
+    function searchProducts(q) { loadProducts(q); }
+
+    function deleteProduct(id) {
+      if (!confirm('Delete this product?')) return;
+      Products.delete(id);
+      loadProducts();
+    }
+
+    // Orders
+    function loadOrders() {
+      const orders = DB.getAll('orders');
+      if (orders.length === 0) {
+        document.getElementById('ordersTable').innerHTML = '<p style="color:var(--gray-400);">No orders yet</p>';
+        return;
+      }
+      document.getElementById('ordersTable').innerHTML = `
+        <table class="data-table">
+          <thead><tr><th>Order ID</th><th>Product</th><th>Type</th><th>Buyer</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody>${orders.map(o => `
+            <tr>
+              <td style="font-size:12px;">${o.id}</td>
+              <td>${o.productName || '-'}</td>
+              <td>${o.type || '-'}</td>
+              <td>${o.buyerName || '-'}</td>
+              <td>${o.productPrice ? formatPrice(o.productPrice) : '-'}</td>
+              <td><span class="status-badge ${o.status === 'proof_submitted' ? 'status-proof' : 'status-pending'}">${o.status}</span></td>
+              <td style="font-size:12px;">${timeAgo(o.createdAt)}</td>
+              <td>
+                <button class="btn btn-sm btn-secondary" onclick="viewOrderDetail('${o.id}')">View</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteOrder('${o.id}')">Delete</button>
+              </td>
+            </tr>
+          `).join('')}</tbody>
+        </table>
+      `;
+    }
+
+    function deleteOrder(id) {
+      if (!confirm('Delete this order?')) return;
+      const orders = DB.getAll('orders').filter(o => o.id !== id);
+      DB.set('orders', orders);
+      loadOrders();
+    }
+
+    function viewOrderDetail(id) {
+      const order = DB.getAll('orders').find(o => o.id === id);
+      if (!order) return;
+      alert(JSON.stringify(order, null, 2));
+    }
+
+    // Payments
+    function loadPayments() {
+      const orders = DB.getAll('orders').filter(o => o.proof);
+      if (orders.length === 0) {
+        document.getElementById('paymentsTable').innerHTML = '<p style="color:var(--gray-400);">No payment proofs submitted yet</p>';
+        return;
+      }
+      document.getElementById('paymentsTable').innerHTML = `
+        <table class="data-table">
+          <thead><tr><th>Order</th><th>Amount</th><th>Method</th><th>Trx ID</th><th>Email</th><th>Submitted</th><th>Screenshot</th></tr></thead>
+          <tbody>${orders.map(o => `
+            <tr>
+              <td style="font-size:12px;">${o.id}</td>
+              <td>${o.proof.amount ? formatPrice(o.proof.amount) : '-'}</td>
+              <td>${o.proof.method || '-'}</td>
+              <td>${o.proof.transactionId || '-'}</td>
+              <td>${o.proof.email || '-'}</td>
+              <td style="font-size:12px;">${o.proof.submittedAt ? timeAgo(o.proof.submittedAt) : '-'}</td>
+              <td>${o.proof.screenshot ? `<a href="${o.proof.screenshot}" target="_blank" class="btn btn-sm btn-secondary">View</a>` : '-'}</td>
+            </tr>
+          `).join('')}</tbody>
+        </table>
+      `;
+    }
+
+    // Settings
+    function saveSettings() {
+      const username = document.getElementById('settingsUsername').value.trim();
+      const password = document.getElementById('settingsPassword').value;
+      const apiUrl = document.getElementById('settingsApiUrl').value.trim();
+
+      if (username) {
+        const creds = { username, password: password || ADMIN_CREDS.password };
+        DB.set('adminCreds', creds);
+      }
+
+      if (apiUrl) {
+        DB.set('apiUrl', apiUrl);
+      }
+
+      showToast('Settings saved!');
+    }
+
+    function exportData() {
+      const data = {
+        users: DB.getAll('users'),
+        products: DB.getAll('products'),
+        orders: DB.getAll('orders'),
+        exportedAt: new Date().toISOString()
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'mts-marketplace-data.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearAllData() {
+      if (!confirm('Are you sure? This will delete ALL data including users, products, and orders. This cannot be undone.')) return;
+      if (!confirm('This is your LAST warning. All data will be permanently deleted.')) return;
+      localStorage.clear();
+      window.location.reload();
+    }
+  </script>
+</body>
+</html>
