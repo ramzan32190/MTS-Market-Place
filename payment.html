@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment - Media Tech Support</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand"><span>MTS</span> Marketplace</a>
+    <div class="navbar-actions">
+      <a href="index.html" class="btn btn-secondary btn-sm">← Back to Marketplace</a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <div class="payment-container">
+      <div class="card" style="padding:32px;">
+        <h2 style="font-size:22px;font-weight:800;margin-bottom:4px;">Payment</h2>
+        <p style="font-size:14px;color:var(--gray-500);margin-bottom:8px;">Select your payment method to complete the purchase</p>
+
+        <!-- Order Summary -->
+        <div class="account-details" id="orderSummary" style="margin-bottom:24px;">
+          <h4>Order Summary</h4>
+          <div class="account-detail-row">
+            <span class="label">Product</span>
+            <span class="value" id="orderProduct">-</span>
+          </div>
+          <div class="account-detail-row">
+            <span class="label">Amount</span>
+            <span class="value" id="orderAmount" style="color:var(--primary);font-size:18px;">Rs. 0</span>
+          </div>
+        </div>
+
+        <!-- Wallet Selection -->
+        <div class="form-group">
+          <label style="font-size:16px;font-weight:700;margin-bottom:12px;">Select Payment Wallet</label>
+          
+          <div class="wallet-option" onclick="selectWallet('nayapay', this)">
+            <input type="radio" name="wallet" value="nayapay">
+            <div>
+              <div class="wallet-name">NayaPay</div>
+              <div style="font-size:12px;color:var(--gray-500);">Pay via NayaPay wallet</div>
+            </div>
+          </div>
+
+          <div class="wallet-option" onclick="selectWallet('easypaisa', this)">
+            <input type="radio" name="wallet" value="easypaisa">
+            <div>
+              <div class="wallet-name">Easypaisa</div>
+              <div style="font-size:12px;color:var(--gray-500);">Pay via Easypaisa</div>
+            </div>
+          </div>
+
+          <div class="wallet-option" onclick="selectWallet('jazzcash', this)">
+            <input type="radio" name="wallet" value="jazzcash">
+            <div>
+              <div class="wallet-name">JazzCash</div>
+              <div style="font-size:12px;color:var(--gray-500);">Pay via JazzCash</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Account Details (shown after selection) -->
+        <div id="accountDetailsSection" class="hidden">
+          <div class="account-details" style="background:#f0fdf4;border-color:#bbf7d0;">
+            <h4 style="color:#166534;">Send Payment To:</h4>
+            <div class="account-detail-row">
+              <span class="label">Account Number</span>
+              <span class="value" id="payAccountNumber">-</span>
+            </div>
+            <div class="account-detail-row">
+              <span class="label">Account Name</span>
+              <span class="value" id="payAccountName">-</span>
+            </div>
+          </div>
+
+          <div class="alert alert-warning" style="margin-top:16px;">
+            <strong>Important:</strong> Send the exact amount shown above to the account number, then click "I Have Sent" to submit your payment proof.
+          </div>
+
+          <button class="btn btn-success btn-lg btn-block mt-4" onclick="iHaveSent()" id="sentBtn">
+            I Have Sent the Payment
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    // Auth check
+    if (!Auth.isLoggedIn()) {
+      window.location.href = 'login.html';
+    }
+
+    const params = getUrlParams();
+    const orderId = params.orderId;
+    const productId = params.productId;
+    const product = Products.getById(productId);
+
+    if (product) {
+      document.getElementById('orderProduct').textContent = product.name;
+      let amount = product.price;
+      document.getElementById('orderAmount').textContent = formatPrice(amount);
+    }
+
+    let selectedWallet = null;
+
+    function selectWallet(wallet, el) {
+      selectedWallet = wallet;
+
+      // Update selection UI
+      document.querySelectorAll('.wallet-option').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+      el.querySelector('input[type="radio"]').checked = true;
+
+      // Show account details
+      const section = document.getElementById('accountDetailsSection');
+      section.classList.remove('hidden');
+
+      const accounts = CONFIG.PAYMENT_ACCOUNTS;
+      const account = accounts[wallet];
+
+      if (account) {
+        document.getElementById('payAccountNumber').textContent = account.number;
+        document.getElementById('payAccountName').textContent = account.name;
+      }
+    }
+
+    function iHaveSent() {
+      if (!selectedWallet) {
+        showToast('Please select a payment method first', 'error');
+        return;
+      }
+      // Navigate to payment proof page
+      window.location.href = `payment-proof.html?orderId=${orderId}&productId=${productId}&wallet=${selectedWallet}`;
+    }
+  </script>
+</body>
+</html>
